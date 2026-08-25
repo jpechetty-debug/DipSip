@@ -46,3 +46,39 @@ export const mockRecommendation: Types.DeploymentRecommendationOut = {
     sufficient: true,
   },
 };
+
+export const mockRegime: Types.RegimeOut = {
+  regime: 'correction',
+  regime_label: 'Correction',
+  blended_drawdown_pct: -6.5,
+};
+
+export const mockCash = {
+  total_cash: 100000,
+  emergency_reserve: 28000,
+  available_cash: 72000,
+};
+
+export const mockOpportunityScore = {
+  score: 85,
+};
+
+export const mockDeployments: Types.DeploymentHistoryOut[] = [
+  {
+    id: 1,
+    date: '2023-10-15',
+    amount: 50000,
+    notes: 'Initial seed',
+    items: [{ fund_id: 1, amount: 20000 }, { fund_id: 2, amount: 30000 }]
+  }
+];
+
+export const mockThresholds = {
+  watch: -5,
+  buy1: -8,
+  buy2: -15,
+  buy3: -25,
+  regime_correction: -5,
+  regime_bear: -10,
+  regime_panic: -20,
+};

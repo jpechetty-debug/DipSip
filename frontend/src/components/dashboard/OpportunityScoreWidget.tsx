@@ -1,6 +1,37 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../shared/Card';
+import { useOpportunityScore } from '../../hooks/useAnalytics';
 
 export function OpportunityScoreWidget() {
+  const { data: scoreData, isLoading } = useOpportunityScore();
+
+  if (isLoading) {
+    return (
+      <Card className="flex flex-col h-full animate-pulse">
+        <CardHeader>
+          <CardTitle>Opportunity Score</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <span className="text-gray-500 text-sm">Loading...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const score = scoreData?.score || 0;
+  let status = 'Neutral';
+  let strokeColor = 'text-warning';
+  
+  if (score > 80) {
+    status = 'Aggressive Deploy';
+    strokeColor = 'text-success';
+  } else if (score > 40) {
+    status = 'Selective Deploy';
+    strokeColor = 'text-primary';
+  } else if (score < 20) {
+    status = 'Hold / Watch';
+    strokeColor = 'text-danger';
+  }
+
   return (
     <Card className="flex flex-col h-full">
       <CardHeader>
@@ -8,7 +39,6 @@ export function OpportunityScoreWidget() {
       </CardHeader>
       <CardContent className="flex-1 flex flex-col items-center justify-center pt-0">
         <div className="relative w-32 h-32 flex items-center justify-center mb-6 mt-4">
-          {/* Simple SVG Donut Chart for Score */}
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
             <path
               className="text-[#1F2937]"
@@ -18,19 +48,19 @@ export function OpportunityScoreWidget() {
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              className="text-success"
-              strokeDasharray="82, 100"
+              className={strokeColor}
+              strokeDasharray={`${score}, 100`}
               strokeWidth="3"
               stroke="currentColor"
               fill="none"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
           </svg>
-          <div className="absolute text-4xl font-bold text-white">82</div>
+          <div className="absolute text-4xl font-bold text-white">{score}</div>
         </div>
         
         <div className="text-center w-full">
-          <span className="text-xs font-semibold uppercase tracking-wider text-success mb-4 block">Status: Aggressive Deploy</span>
+          <span className={`text-xs font-semibold uppercase tracking-wider ${strokeColor} mb-4 block`}>Status: {status}</span>
           
           <div className="w-full bg-[#111827] rounded-lg p-3 space-y-2 border border-[#1F2937]">
             <div className="text-xs text-gray-400 text-left mb-2">Suggested Allocation</div>

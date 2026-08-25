@@ -20,6 +20,7 @@ TIMEZONE = os.getenv("TIMEZONE", "Asia/Kolkata")
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
 
 # AMFI's official daily NAV dump — semicolon-delimited text, all schemes,
 # refreshed once markets close. No auth, no key.

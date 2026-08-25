@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   
   ANALYTICS_PORTFOLIO_XIRR: '/analytics/portfolio/xirr',
   ANALYTICS_PORTFOLIO_REGIME: '/analytics/portfolio/regime',
+  ANALYTICS_OPPORTUNITY_SCORE: '/analytics/opportunity-score',
   ANALYTICS_FUND_XIRR: (id: number) => `/analytics/funds/${id}/xirr`,
   ANALYTICS_FUND_CYCLE: (id: number) => `/analytics/funds/${id}/cycle`,
   ANALYTICS_FUND_CYCLES: (id: number) => `/analytics/funds/${id}/cycles`,

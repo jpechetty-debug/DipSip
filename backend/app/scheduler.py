@@ -25,7 +25,12 @@ def run_daily_refresh() -> None:
         try:
             records = parse_navall(fetch_navall_raw())
         except Exception as e:
-            print(f"[scheduler] failed to fetch AMFI NAV data: {e}")
+            err_msg = f"[scheduler] failed to fetch AMFI NAV data: {e}"
+            print(err_msg)
+            # Create a system alert (fund_id=None)
+            alert = models.Alert(fund_id=None, tier="system", message=err_msg)
+            db.add(alert)
+            db.commit()
             return
 
         thresholds = thresholds_dict(db)

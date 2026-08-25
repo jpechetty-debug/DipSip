@@ -90,6 +90,26 @@ def portfolio_regime(db: Session = Depends(get_db)):
     return out
 
 
+@router.get("/opportunity-score")
+def opportunity_score(db: Session = Depends(get_db)):
+    snapshots = all_fund_snapshots(db)
+    if not snapshots:
+        return {"score": 0}
+
+    blended_dd = blended_drawdown(snapshots)
+    regime_thresholds = regime_thresholds_dict(db)
+    panic = regime_thresholds["panic"]  # negative number
+    
+    # panic is e.g. -20, blended_dd is e.g. -10
+    # ratio = -10 / -20 = 0.5 -> 50 score
+    if panic >= 0 or blended_dd >= 0:
+        score = 0
+    else:
+        score = min(100, max(0, int((blended_dd / panic) * 100)))
+
+    return {"score": score}
+
+
 @router.get("/funds/{fund_id}/cycle")
 def fund_cycle(fund_id: int, db: Session = Depends(get_db)):
     fund = db.get(models.Fund, fund_id)
