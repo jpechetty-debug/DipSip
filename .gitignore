@@ -10,6 +10,7 @@ __pycache__/
 *.so
 .Python
 env/
+venv/
 build/
 develop-eggs/
 dist/
@@ -25,6 +26,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.sqlite3
+*.db
 
 # Environment variables
 .env
@@ -42,3 +45,8 @@ wheels/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Secrets and scripts
+git-creds.txt
+push.bat
+git_push.py
