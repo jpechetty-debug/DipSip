@@ -17,9 +17,18 @@ export const useCashReserve = () => {
     },
   });
 
+  const addCashMutation = useMutation({
+    mutationFn: (amount: number) => apiService.addCash({ amount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash'] });
+    },
+  });
+
   return {
     ...query,
     updateCash: mutation.mutate,
     isUpdating: mutation.isPending,
+    addCash: addCashMutation.mutate,
+    isAdding: addCashMutation.isPending,
   };
 };

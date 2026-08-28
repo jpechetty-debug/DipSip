@@ -1,13 +1,26 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/apiService';
 import { Card, CardContent } from '../components/shared/Card';
 import { TrendingDown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Funds() {
+  const queryClient = useQueryClient();
+
   const { data: funds, isLoading } = useQuery({
     queryKey: ['funds'],
     queryFn: apiService.getFunds,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (newFund: { name: string, target_weight: number }) => apiService.createFund(newFund),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+      alert('Fund added successfully!');
+    },
+    onError: (err: any) => {
+      alert(`Failed to add fund: ${err?.message}`);
+    }
   });
 
   if (isLoading) {
@@ -24,8 +37,18 @@ export default function Funds() {
           <h1 className="text-2xl font-bold text-white tracking-tight">Funds Directory</h1>
           <p className="text-gray-400 text-sm mt-1">Manage and monitor your target mutual funds</p>
         </div>
-        <button className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
-          + Add Fund
+        <button 
+          onClick={() => {
+            const name = window.prompt("Enter new fund name:");
+            if (!name) return;
+            const weightStr = window.prompt("Enter target weight % (e.g. 20):");
+            const target_weight = Number(weightStr) || 0;
+            createMutation.mutate({ name, target_weight });
+          }}
+          disabled={createMutation.isPending}
+          className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
+        >
+          {createMutation.isPending ? 'Adding...' : '+ Add Fund'}
         </button>
       </div>
 

@@ -3,7 +3,8 @@ import { Shield, AlertTriangle } from 'lucide-react';
 import { useCashReserve } from '../../hooks/useCashReserve';
 
 export function CashReserveWidget() {
-  const { data: cash, isLoading } = useCashReserve();
+  const cashHook = useCashReserve();
+  const { data: cash, isLoading } = cashHook;
 
   if (isLoading) {
     return (
@@ -25,8 +26,19 @@ export function CashReserveWidget() {
 
   return (
     <Card className="flex flex-col h-full">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Cash Reserve</CardTitle>
+        <button 
+          onClick={() => {
+            const val = window.prompt('Enter amount to add to cash reserve:');
+            if (val && !isNaN(Number(val))) {
+              cashHook.addCash(Number(val));
+            }
+          }}
+          className="text-xs bg-primary/20 text-primary hover:bg-primary/30 px-3 py-1.5 rounded transition-colors"
+        >
+          {cashHook.isAdding ? 'Adding...' : '+ Add Cash'}
+        </button>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-between pt-4">
         

@@ -1,12 +1,27 @@
 import { Card, CardContent } from '../shared/Card';
 import { ArrowRight, TrendingDown, Zap } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../../services/apiService';
 
 export function RecommendationHero() {
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ['deploymentRecommendation', 8000], // Example amount, ideally dynamic
     queryFn: () => apiService.getDeploymentRecommendation(8000),
+  });
+
+  const deployMutation = useMutation({
+    mutationFn: (amount: number) => apiService.logDeployment({ amount, force: false }),
+    onSuccess: () => {
+      alert('Deployment logged successfully!');
+      // Invalidate relevant queries to refresh the dashboard
+      queryClient.invalidateQueries({ queryKey: ['cash'] });
+      queryClient.invalidateQueries({ queryKey: ['deployments'] });
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+    },
+    onError: (err: any) => {
+      alert(`Failed to log deployment: ${err?.message || 'Unknown error'}`);
+    }
   });
 
   if (isLoading) return <Card className="animate-pulse h-48 bg-card/50" />;
@@ -44,8 +59,16 @@ export function RecommendationHero() {
             </div>
           </div>
           
-          <button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium shadow-lg shadow-primary/20 transition-all flex items-center">
-            Execute Deployment
+          <button 
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to deploy ₹${topAmount}?`)) {
+                deployMutation.mutate(topAmount);
+              }
+            }}
+            disabled={deployMutation.isPending}
+            className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium shadow-lg shadow-primary/20 transition-all flex items-center disabled:opacity-50"
+          >
+            {deployMutation.isPending ? 'Executing...' : 'Execute Deployment'}
             <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>

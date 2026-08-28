@@ -101,5 +101,72 @@ export const apiService = {
     }
     const { data } = await apiClient.put(API_ENDPOINTS.CASH, payload);
     return data;
+  },
+
+  createFund: async (payload: Types.FundCreate): Promise<Types.FundOut> => {
+    if (USE_MOCK_DATA) {
+      await delay(800);
+      return { ...payload, id: 99, reference_high_is_placeholder: false } as Types.FundOut;
+    }
+    const { data } = await apiClient.post<Types.FundOut>(API_ENDPOINTS.FUNDS, payload);
+    return data;
+  },
+
+  updateFund: async (id: number, payload: Types.FundUpdate): Promise<Types.FundOut> => {
+    if (USE_MOCK_DATA) {
+      await delay(800);
+      const fund = mockFunds.find(f => f.id === id);
+      return { ...fund, ...payload } as Types.FundOut;
+    }
+    const { data } = await apiClient.put<Types.FundOut>(API_ENDPOINTS.FUND_BY_ID(id), payload);
+    return data;
+  },
+
+  searchSchemes: async (q: string): Promise<any[]> => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return [
+        { scheme_code: '119598', scheme_name: 'Bandhan Small Cap Fund - Direct Plan - Growth' },
+        { scheme_code: '120503', scheme_name: 'SBI Small Cap Fund - Direct Plan - Growth' }
+      ];
+    }
+    const { data } = await apiClient.get<any[]>(API_ENDPOINTS.SCHEMES_SEARCH, { params: { q } });
+    return data;
+  },
+
+  logDeployment: async (payload: Types.DeploymentLogRequest): Promise<any> => {
+    if (USE_MOCK_DATA) {
+      await delay(800);
+      return { status: 'success', recorded: true };
+    }
+    const { data } = await apiClient.post(API_ENDPOINTS.DEPLOYMENT_LOG, payload);
+    return data;
+  },
+
+  addCash: async (payload: Types.CashAddRequest): Promise<any> => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return { status: 'success' };
+    }
+    const { data } = await apiClient.post(API_ENDPOINTS.CASH_ADD, payload);
+    return data;
+  },
+
+  addNavLog: async (payload: Types.NavLogCreate): Promise<any> => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      return { status: 'success' };
+    }
+    const { data } = await apiClient.post(API_ENDPOINTS.NAV, payload);
+    return data;
+  },
+
+  ackAlert: async (id: number): Promise<any> => {
+    if (USE_MOCK_DATA) {
+      await delay(300);
+      return { status: 'success' };
+    }
+    const { data } = await apiClient.post(API_ENDPOINTS.ALERT_ACK(id));
+    return data;
   }
 };
