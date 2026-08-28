@@ -15,6 +15,10 @@ export default function FundDetails() {
     threshold_buy1: '',
     threshold_buy2: '',
     threshold_buy3: '',
+    ladder_watch_budget: '',
+    ladder_buy1_budget: '',
+    ladder_buy2_budget: '',
+    ladder_buy3_budget: '',
   });
   
   const { data: fund, isLoading } = useQuery({
@@ -230,6 +234,50 @@ export default function FundDetails() {
                     />
                   </div>
                 </div>
+
+                <div className="text-sm font-semibold text-white mt-4 mb-2">Ladder Budgets (₹)</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Watch Budget</label>
+                    <input 
+                      type="number" 
+                      placeholder="No limit" 
+                      value={editForm.ladder_watch_budget} 
+                      onChange={(e) => setEditForm(prev => ({...prev, ladder_watch_budget: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY1 Budget</label>
+                    <input 
+                      type="number" 
+                      placeholder="No limit" 
+                      value={editForm.ladder_buy1_budget} 
+                      onChange={(e) => setEditForm(prev => ({...prev, ladder_buy1_budget: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY2 Budget</label>
+                    <input 
+                      type="number" 
+                      placeholder="No limit" 
+                      value={editForm.ladder_buy2_budget} 
+                      onChange={(e) => setEditForm(prev => ({...prev, ladder_buy2_budget: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY3 Budget</label>
+                    <input 
+                      type="number" 
+                      placeholder="No limit" 
+                      value={editForm.ladder_buy3_budget} 
+                      onChange={(e) => setEditForm(prev => ({...prev, ladder_buy3_budget: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                </div>
                 <div className="flex space-x-2 mt-4 pt-4 border-t border-border">
                   <button 
                     onClick={() => {
@@ -238,6 +286,15 @@ export default function FundDetails() {
                       if (editForm.threshold_buy1) updates.threshold_buy1 = Number(editForm.threshold_buy1);
                       if (editForm.threshold_buy2) updates.threshold_buy2 = Number(editForm.threshold_buy2);
                       if (editForm.threshold_buy3) updates.threshold_buy3 = Number(editForm.threshold_buy3);
+                      
+                      // For budgets, we allow empty strings to clear the budget (sending null), 
+                      // but since we only send defined updates, we might need a way to clear them.
+                      // For now, if there is a value we send it.
+                      if (editForm.ladder_watch_budget) updates.ladder_watch_budget = Number(editForm.ladder_watch_budget);
+                      if (editForm.ladder_buy1_budget) updates.ladder_buy1_budget = Number(editForm.ladder_buy1_budget);
+                      if (editForm.ladder_buy2_budget) updates.ladder_buy2_budget = Number(editForm.ladder_buy2_budget);
+                      if (editForm.ladder_buy3_budget) updates.ladder_buy3_budget = Number(editForm.ladder_buy3_budget);
+
                       updateMutation.mutate(updates);
                     }}
                     disabled={updateMutation.isPending}
@@ -264,11 +321,19 @@ export default function FundDetails() {
                   <span className="text-white">Calculated dynamically based on trailing ATH</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-400 block mb-1">Overrides</span>
+                  <span className="text-gray-400 block mb-1">Threshold Overrides</span>
                   <span className="text-gray-300 text-xs">
                     {fund.threshold_buy1 || fund.threshold_buy2 || fund.threshold_buy3 || fund.threshold_watch 
                       ? "Custom fund thresholds active" 
                       : "Using global defaults"}
+                  </span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-gray-400 block mb-1">Ladder Budgets</span>
+                  <span className="text-gray-300 text-xs">
+                    {fund.ladder_buy1_budget || fund.ladder_buy2_budget || fund.ladder_buy3_budget || fund.ladder_watch_budget 
+                      ? "Custom budgets active" 
+                      : "Unbounded"}
                   </span>
                 </div>
                 <div className="mt-6 pt-4 border-t border-border">
@@ -279,6 +344,10 @@ export default function FundDetails() {
                         threshold_buy1: fund.threshold_buy1?.toString() || '',
                         threshold_buy2: fund.threshold_buy2?.toString() || '',
                         threshold_buy3: fund.threshold_buy3?.toString() || '',
+                        ladder_watch_budget: fund.ladder_watch_budget?.toString() || '',
+                        ladder_buy1_budget: fund.ladder_buy1_budget?.toString() || '',
+                        ladder_buy2_budget: fund.ladder_buy2_budget?.toString() || '',
+                        ladder_buy3_budget: fund.ladder_buy3_budget?.toString() || '',
                       });
                       setIsEditing(true);
                     }}
