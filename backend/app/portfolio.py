@@ -65,6 +65,16 @@ def fund_snapshot(db: Session, fund: models.Fund, thresholds: Dict[str, float] =
         "current_nav": current_nav,
         "drawdown_pct": round(drawdown, 2),
         "tier": tier,
+        "seed_value": fund.seed_value,
+        "seed_date": fund.seed_date,
+        "ladder_watch_budget": fund.ladder_watch_budget,
+        "ladder_buy1_budget": fund.ladder_buy1_budget,
+        "ladder_buy2_budget": fund.ladder_buy2_budget,
+        "ladder_buy3_budget": fund.ladder_buy3_budget,
+        "threshold_watch": fund.threshold_watch,
+        "threshold_buy1": fund.threshold_buy1,
+        "threshold_buy2": fund.threshold_buy2,
+        "threshold_buy3": fund.threshold_buy3,
         "effective_thresholds": effective,
     }
 
