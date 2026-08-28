@@ -28,14 +28,20 @@ def maybe_create_alert(
     if tier == prev_tier:
         return None
 
-    message = f"{fund.name} is now {abs(drawdown):.1f}% off its reference high — {TIER_LABELS[tier]}."
+    if tier == "neutral":
+        message = f"{fund.name} has recovered back to its reference high — dip cycle over."
+    else:
+        message = f"{fund.name} is now {abs(drawdown):.1f}% off its reference high — {TIER_LABELS[tier]}."
+
     alert = models.Alert(fund_id=fund.id, tier=tier, message=message)
     db.add(alert)
     db.commit()
     db.refresh(alert)
 
-    if tier != "neutral":
-        send_telegram(message)
+    # Notify on every tier change, including recovery back to neutral — you
+    # want to know both when a dip opens (buy signal) and when it closes
+    # (stop expecting to deploy into that fund at a discount anymore).
+    send_telegram(message)
     return alert
 
 

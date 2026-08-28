@@ -10,7 +10,12 @@ from .config import SCHEDULER_HOUR, SCHEDULER_MINUTE, TIMEZONE
 from .cycles import update_fund_cycle, update_regime_cycle
 from .database import SessionLocal
 from .market_data import fetch_navall_raw, get_nav_for_scheme, parse_navall
-from .portfolio import all_fund_snapshots, regime_thresholds_dict, thresholds_dict
+from .portfolio import (
+    all_fund_snapshots,
+    effective_thresholds_for_fund,
+    regime_thresholds_dict,
+    thresholds_dict,
+)
 from .regime import blended_drawdown, regime_for
 from .scoring import compute_drawdown, tier_for
 
@@ -53,7 +58,8 @@ def run_daily_refresh() -> None:
             db.commit()
 
             drawdown = compute_drawdown(rec["nav"], fund.reference_high)
-            tier = tier_for(drawdown, thresholds)
+            fund_thresholds = effective_thresholds_for_fund(fund, thresholds)
+            tier = tier_for(drawdown, fund_thresholds)
             maybe_create_alert(db, fund, tier, drawdown)
             update_fund_cycle(db, fund, tier, drawdown, today)
 

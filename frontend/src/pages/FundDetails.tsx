@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/apiService';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/shared/Card';
 import { ArrowLeft, TrendingDown, Clock, Shield } from 'lucide-react';
@@ -7,11 +8,27 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 
 export default function FundDetails() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    threshold_watch: '',
+    threshold_buy1: '',
+    threshold_buy2: '',
+    threshold_buy3: '',
+  });
   
   const { data: fund, isLoading } = useQuery({
     queryKey: ['fund', Number(id)],
     queryFn: () => apiService.getFundById(Number(id)),
     enabled: !!id,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (updates: any) => apiService.updateFund(Number(id), updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fund', Number(id)] });
+      setIsEditing(false);
+    }
   });
 
   if (isLoading) {
@@ -36,6 +53,15 @@ export default function FundDetails() {
       value: Number(value.toFixed(2)),
     };
   });
+
+  const buy1Threshold = fund.effective_thresholds?.buy1 ?? -5;
+  const buy2Threshold = fund.effective_thresholds?.buy2 ?? -10;
+  const buy3Threshold = fund.effective_thresholds?.buy3 ?? -15;
+
+  // For visualization, we calculate the NAV corresponding to the buy1 drawdown threshold
+  const referenceHigh = fund.reference_high || (fund.current_nav ? fund.current_nav / (1 + ((fund.drawdown_pct || 0) / 100)) : 100);
+  const buy1NavThreshold = referenceHigh * (1 + (buy1Threshold / 100));
+
 
   return (
     <div className="space-y-6 pb-12">
@@ -103,8 +129,8 @@ export default function FundDetails() {
                   contentStyle={{ backgroundColor: '#111827', borderColor: '#1F2937', color: '#fff' }}
                   itemStyle={{ color: '#6366F1' }}
                 />
-                {/* Visualizing 5% drawdown threshold */}
-                <ReferenceLine y={(fund.current_nav || 100) * 1.05} stroke="#EF4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'BUY1 Threshold', fill: '#EF4444', fontSize: 12 }} />
+                {/* Visualizing BUY1 drawdown threshold */}
+                <ReferenceLine y={buy1NavThreshold} stroke="#EF4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: `BUY1 Threshold (${Math.abs(buy1Threshold)}% drop)`, fill: '#EF4444', fontSize: 12 }} />
                 <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#6366F1', stroke: '#111827', strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -123,21 +149,21 @@ export default function FundDetails() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-3 border-b border-border">
-                <span className="text-gray-300">BUY1 Trigger (5% drop)</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= -5 ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
-                  {(fund.drawdown_pct || 0) <= -5 ? 'ACTIVE' : 'PENDING'}
+                <span className="text-gray-300">BUY1 Trigger ({Math.abs(buy1Threshold)}% drop)</span>
+                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= buy1Threshold ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
+                  {(fund.drawdown_pct || 0) <= buy1Threshold ? 'ACTIVE' : 'PENDING'}
                 </span>
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-border">
-                <span className="text-gray-300">BUY2 Trigger (10% drop)</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= -10 ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
-                  {(fund.drawdown_pct || 0) <= -10 ? 'ACTIVE' : 'PENDING'}
+                <span className="text-gray-300">BUY2 Trigger ({Math.abs(buy2Threshold)}% drop)</span>
+                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= buy2Threshold ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
+                  {(fund.drawdown_pct || 0) <= buy2Threshold ? 'ACTIVE' : 'PENDING'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-300">BUY3 Trigger (15% drop)</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= -15 ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
-                  {(fund.drawdown_pct || 0) <= -15 ? 'ACTIVE' : 'PENDING'}
+                <span className="text-gray-300">BUY3 Trigger ({Math.abs(buy3Threshold)}% drop)</span>
+                <span className={`px-2 py-1 rounded text-xs font-bold ${(fund.drawdown_pct || 0) <= buy3Threshold ? 'bg-success/20 text-success' : 'bg-gray-800 text-gray-400'}`}>
+                  {(fund.drawdown_pct || 0) <= buy3Threshold ? 'ACTIVE' : 'PENDING'}
                 </span>
               </div>
             </div>
@@ -152,19 +178,109 @@ export default function FundDetails() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="text-sm">
-                <span className="text-gray-400 block mb-1">Fund ID</span>
-                <span className="text-white bg-gray-800 px-2 py-1 rounded font-mono">{fund.id}</span>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Watch Threshold</label>
+                    <input 
+                      type="number" 
+                      placeholder={fund.effective_thresholds?.watch?.toString() || "-5"} 
+                      value={editForm.threshold_watch} 
+                      onChange={(e) => setEditForm(prev => ({...prev, threshold_watch: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY1 Threshold</label>
+                    <input 
+                      type="number" 
+                      placeholder={fund.effective_thresholds?.buy1?.toString() || "-8"} 
+                      value={editForm.threshold_buy1} 
+                      onChange={(e) => setEditForm(prev => ({...prev, threshold_buy1: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY2 Threshold</label>
+                    <input 
+                      type="number" 
+                      placeholder={fund.effective_thresholds?.buy2?.toString() || "-15"} 
+                      value={editForm.threshold_buy2} 
+                      onChange={(e) => setEditForm(prev => ({...prev, threshold_buy2: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">BUY3 Threshold</label>
+                    <input 
+                      type="number" 
+                      placeholder={fund.effective_thresholds?.buy3?.toString() || "-25"} 
+                      value={editForm.threshold_buy3} 
+                      onChange={(e) => setEditForm(prev => ({...prev, threshold_buy3: e.target.value}))}
+                      className="w-full bg-[#111827] border border-border rounded px-2 py-1 text-sm text-white" 
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4 pt-4 border-t border-border">
+                  <button 
+                    onClick={() => {
+                      const updates: any = {};
+                      if (editForm.threshold_watch) updates.threshold_watch = Number(editForm.threshold_watch);
+                      if (editForm.threshold_buy1) updates.threshold_buy1 = Number(editForm.threshold_buy1);
+                      if (editForm.threshold_buy2) updates.threshold_buy2 = Number(editForm.threshold_buy2);
+                      if (editForm.threshold_buy3) updates.threshold_buy3 = Number(editForm.threshold_buy3);
+                      updateMutation.mutate(updates);
+                    }}
+                    disabled={updateMutation.isPending}
+                    className="bg-primary text-white text-xs px-3 py-1.5 rounded font-medium disabled:opacity-50"
+                  >
+                    {updateMutation.isPending ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    onClick={() => setIsEditing(false)}
+                    className="bg-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded font-medium hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-              <div className="text-sm">
-                <span className="text-gray-400 block mb-1">Reference High</span>
-                <span className="text-white">Calculated dynamically based on trailing ATH</span>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <span className="text-gray-400 block mb-1">Fund ID</span>
+                  <span className="text-white bg-gray-800 px-2 py-1 rounded font-mono">{fund.id}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-gray-400 block mb-1">Reference High</span>
+                  <span className="text-white">Calculated dynamically based on trailing ATH</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-gray-400 block mb-1">Overrides</span>
+                  <span className="text-gray-300 text-xs">
+                    {fund.threshold_buy1 || fund.threshold_buy2 || fund.threshold_buy3 || fund.threshold_watch 
+                      ? "Custom fund thresholds active" 
+                      : "Using global defaults"}
+                  </span>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border">
+                  <button 
+                    onClick={() => {
+                      setEditForm({
+                        threshold_watch: fund.threshold_watch?.toString() || '',
+                        threshold_buy1: fund.threshold_buy1?.toString() || '',
+                        threshold_buy2: fund.threshold_buy2?.toString() || '',
+                        threshold_buy3: fund.threshold_buy3?.toString() || '',
+                      });
+                      setIsEditing(true);
+                    }}
+                    className="text-primary hover:text-primary/80 text-sm font-medium"
+                  >
+                    Edit Configuration →
+                  </button>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-border">
-                <button className="text-primary hover:text-primary/80 text-sm font-medium">Edit Configuration →</button>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

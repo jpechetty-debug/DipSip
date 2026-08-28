@@ -21,6 +21,10 @@ _NEW_COLUMNS = [
     ("thresholds", "regime_correction", "FLOAT DEFAULT -5.0"),
     ("thresholds", "regime_bear", "FLOAT DEFAULT -10.0"),
     ("thresholds", "regime_panic", "FLOAT DEFAULT -20.0"),
+    ("funds", "threshold_watch", "FLOAT"),
+    ("funds", "threshold_buy1", "FLOAT"),
+    ("funds", "threshold_buy2", "FLOAT"),
+    ("funds", "threshold_buy3", "FLOAT"),
 ]
 
 

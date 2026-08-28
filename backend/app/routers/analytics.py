@@ -8,7 +8,13 @@ from .. import models
 from ..auth import require_api_key
 from ..cycles import fund_cycle_out, regime_cycle_out
 from ..database import get_db
-from ..portfolio import all_fund_snapshots, fund_snapshot, regime_thresholds_dict, thresholds_dict
+from ..portfolio import (
+    all_fund_snapshots,
+    effective_thresholds_for_fund,
+    fund_snapshot,
+    regime_thresholds_dict,
+    thresholds_dict,
+)
 from ..regime import REGIME_LABELS, blended_drawdown, regime_for
 from ..xirr import xirr
 
@@ -120,8 +126,8 @@ def fund_cycle(fund_id: int, db: Session = Depends(get_db)):
     if not cycle:
         return {"fund_id": fund_id, "active_cycle": None}
 
-    thresholds = thresholds_dict(db)
-    snap = fund_snapshot(db, fund, thresholds)
+    thresholds = effective_thresholds_for_fund(fund, thresholds_dict(db))
+    snap = fund_snapshot(db, fund, thresholds_dict(db))
     return {"fund_id": fund_id, "active_cycle": fund_cycle_out(cycle, snap["drawdown_pct"], thresholds)}
 
 
@@ -131,8 +137,8 @@ def fund_cycle_history(fund_id: int, db: Session = Depends(get_db)):
     if not fund:
         raise HTTPException(404, "Fund not found")
 
-    thresholds = thresholds_dict(db)
-    snap = fund_snapshot(db, fund, thresholds)
+    thresholds = effective_thresholds_for_fund(fund, thresholds_dict(db))
+    snap = fund_snapshot(db, fund, thresholds_dict(db))
     cycles = (
         db.query(models.DeploymentCycle)
         .filter_by(fund_id=fund_id)

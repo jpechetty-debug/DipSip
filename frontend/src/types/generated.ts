@@ -8,6 +8,10 @@ export interface FundCreate {
   ladder_buy1_budget?: number;
   ladder_buy2_budget?: number;
   ladder_buy3_budget?: number;
+  threshold_watch?: number;
+  threshold_buy1?: number;
+  threshold_buy2?: number;
+  threshold_buy3?: number;
 }
 
 export interface FundUpdate {
@@ -22,6 +26,10 @@ export interface FundUpdate {
   ladder_buy1_budget?: number;
   ladder_buy2_budget?: number;
   ladder_buy3_budget?: number;
+  threshold_watch?: number;
+  threshold_buy1?: number;
+  threshold_buy2?: number;
+  threshold_buy3?: number;
 }
 
 export interface FundOut {
@@ -41,6 +49,11 @@ export interface FundOut {
   ladder_buy1_budget?: number;
   ladder_buy2_budget?: number;
   ladder_buy3_budget?: number;
+  threshold_watch?: number;
+  threshold_buy1?: number;
+  threshold_buy2?: number;
+  threshold_buy3?: number;
+  effective_thresholds?: Record<string, number>;
 }
 
 export interface NavLogCreate {

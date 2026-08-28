@@ -32,6 +32,11 @@ def _fund_to_out(db: Session, fund: models.Fund, thresholds: dict) -> schemas.Fu
         ladder_buy1_budget=fund.ladder_buy1_budget,
         ladder_buy2_budget=fund.ladder_buy2_budget,
         ladder_buy3_budget=fund.ladder_buy3_budget,
+        threshold_watch=fund.threshold_watch,
+        threshold_buy1=fund.threshold_buy1,
+        threshold_buy2=fund.threshold_buy2,
+        threshold_buy3=fund.threshold_buy3,
+        effective_thresholds=snap["effective_thresholds"],
     )
 
 
@@ -58,6 +63,10 @@ def create_fund(payload: schemas.FundCreate, db: Session = Depends(get_db)):
         ladder_buy1_budget=payload.ladder_buy1_budget,
         ladder_buy2_budget=payload.ladder_buy2_budget,
         ladder_buy3_budget=payload.ladder_buy3_budget,
+        threshold_watch=payload.threshold_watch,
+        threshold_buy1=payload.threshold_buy1,
+        threshold_buy2=payload.threshold_buy2,
+        threshold_buy3=payload.threshold_buy3,
     )
     db.add(fund)
     db.commit()

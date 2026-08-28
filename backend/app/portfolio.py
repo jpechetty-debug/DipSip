@@ -26,10 +26,25 @@ def regime_thresholds_dict(db: Session) -> Dict[str, float]:
     return {"correction": row.regime_correction, "bear": row.regime_bear, "panic": row.regime_panic}
 
 
+def effective_thresholds_for_fund(fund: models.Fund, global_thresholds: Dict[str, float]) -> Dict[str, float]:
+    """Per-fund threshold overrides, falling back to the global Threshold row
+    for any tier the fund hasn't overridden. A fund with no overrides at all
+    behaves exactly as before."""
+    return {
+        "watch": fund.threshold_watch if fund.threshold_watch is not None else global_thresholds["watch"],
+        "buy1": fund.threshold_buy1 if fund.threshold_buy1 is not None else global_thresholds["buy1"],
+        "buy2": fund.threshold_buy2 if fund.threshold_buy2 is not None else global_thresholds["buy2"],
+        "buy3": fund.threshold_buy3 if fund.threshold_buy3 is not None else global_thresholds["buy3"],
+    }
+
+
 def fund_snapshot(db: Session, fund: models.Fund, thresholds: Dict[str, float] = None) -> dict:
-    """Current NAV, drawdown %, and tier for one fund, as a plain dict."""
+    """Current NAV, drawdown %, and tier for one fund, as a plain dict.
+    `thresholds` here is the GLOBAL default; the fund's own overrides (if any)
+    are applied on top before computing its tier."""
     if thresholds is None:
         thresholds = thresholds_dict(db)
+    effective = effective_thresholds_for_fund(fund, thresholds)
     last_nav_row = (
         db.query(models.NavLog)
         .filter_by(fund_id=fund.id)
@@ -38,7 +53,7 @@ def fund_snapshot(db: Session, fund: models.Fund, thresholds: Dict[str, float] =
     )
     current_nav = last_nav_row.nav if last_nav_row else fund.reference_high
     drawdown = compute_drawdown(current_nav, fund.reference_high) if (fund.reference_high and current_nav) else 0.0
-    tier = tier_for(drawdown, thresholds)
+    tier = tier_for(drawdown, effective)
     return {
         "id": fund.id,
         "name": fund.name,
@@ -50,6 +65,7 @@ def fund_snapshot(db: Session, fund: models.Fund, thresholds: Dict[str, float] =
         "current_nav": current_nav,
         "drawdown_pct": round(drawdown, 2),
         "tier": tier,
+        "effective_thresholds": effective,
     }
 
 

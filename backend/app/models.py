@@ -37,6 +37,16 @@ class Fund(Base):
     ladder_buy2_budget = Column(Float, nullable=True)
     ladder_buy3_budget = Column(Float, nullable=True)
 
+    # Per-fund drawdown thresholds — override the global Threshold row for
+    # THIS fund only. All optional; any left unset fall back to the global
+    # value. Use this because a -15% drawdown means something very different
+    # for a largecap vs a smallcap fund — one global threshold set doesn't
+    # fit a portfolio spanning multiple fund categories.
+    threshold_watch = Column(Float, nullable=True)
+    threshold_buy1 = Column(Float, nullable=True)
+    threshold_buy2 = Column(Float, nullable=True)
+    threshold_buy3 = Column(Float, nullable=True)
+
     navs = relationship("NavLog", back_populates="fund", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="fund", cascade="all, delete-orphan")
     cycles = relationship("DeploymentCycle", back_populates="fund", cascade="all, delete-orphan")

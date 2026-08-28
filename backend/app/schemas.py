@@ -15,6 +15,14 @@ class FundCreate(BaseModel):
     ladder_buy1_budget: Optional[float] = None
     ladder_buy2_budget: Optional[float] = None
     ladder_buy3_budget: Optional[float] = None
+    # Per-fund drawdown thresholds — leave unset to use the global default
+    # thresholds for this fund. Set these when a fund's normal volatility
+    # doesn't match the global thresholds (e.g. a smallcap fund needs deeper
+    # thresholds than a largecap/flexicap fund).
+    threshold_watch: Optional[float] = None
+    threshold_buy1: Optional[float] = None
+    threshold_buy2: Optional[float] = None
+    threshold_buy3: Optional[float] = None
 
 
 class FundUpdate(BaseModel):
@@ -31,6 +39,10 @@ class FundUpdate(BaseModel):
     ladder_buy1_budget: Optional[float] = None
     ladder_buy2_budget: Optional[float] = None
     ladder_buy3_budget: Optional[float] = None
+    threshold_watch: Optional[float] = None
+    threshold_buy1: Optional[float] = None
+    threshold_buy2: Optional[float] = None
+    threshold_buy3: Optional[float] = None
 
 
 class FundOut(BaseModel):
@@ -50,6 +62,11 @@ class FundOut(BaseModel):
     ladder_buy1_budget: Optional[float] = None
     ladder_buy2_budget: Optional[float] = None
     ladder_buy3_budget: Optional[float] = None
+    threshold_watch: Optional[float] = None
+    threshold_buy1: Optional[float] = None
+    threshold_buy2: Optional[float] = None
+    threshold_buy3: Optional[float] = None
+    effective_thresholds: Optional[dict] = None
 
     class Config:
         from_attributes = True
