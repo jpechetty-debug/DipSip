@@ -23,6 +23,12 @@ export default function FundDetails() {
     enabled: !!id,
   });
 
+  const { data: navHistory } = useQuery({
+    queryKey: ['navHistory', Number(id)],
+    queryFn: () => apiService.getNavHistory(Number(id)),
+    enabled: !!id,
+  });
+
   const updateMutation = useMutation({
     mutationFn: (updates: any) => apiService.updateFund(Number(id), updates),
     onSuccess: () => {
@@ -42,17 +48,13 @@ export default function FundDetails() {
     return <div className="text-danger">Fund not found</div>;
   }
 
-  // Mock chart data for visualization
-  const mockChartData = Array.from({ length: 30 }).map((_, i) => {
-    const day = 30 - i;
-    // generate a downward trending curve to match current NAV
-    const baseNav = fund.current_nav || 100;
-    const value = baseNav * (1 + (day * 0.005) + (Math.random() * 0.02 - 0.01)); 
-    return {
-      name: `Day -${day}`,
-      value: Number(value.toFixed(2)),
-    };
-  });
+  // Real NAV history from the backend, oldest to newest. Empty until the
+  // daily scheduler (or a manual /nav log) has actually recorded some
+  // points — an empty chart is more honest than a fabricated curve.
+  const chartData = (navHistory ?? [])
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((log) => ({ name: log.date, value: log.nav }));
 
   const buy1Threshold = fund.effective_thresholds?.buy1 ?? -5;
   const buy2Threshold = fund.effective_thresholds?.buy2 ?? -10;
@@ -121,8 +123,13 @@ export default function FundDetails() {
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full">
+            {chartData.length === 0 ? (
+              <div className="h-full w-full flex items-center justify-center text-sm text-gray-500">
+                No NAV history yet — this fills in once the daily scheduler runs.
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockChartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <XAxis dataKey="name" stroke="#4B5563" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#4B5563" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${val}`} domain={['dataMin - 5', 'dataMax + 5']} />
                 <Tooltip 
@@ -134,6 +141,7 @@ export default function FundDetails() {
                 <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#6366F1', stroke: '#111827', strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>

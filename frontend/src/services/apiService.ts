@@ -161,6 +161,16 @@ export const apiService = {
     return data;
   },
 
+  getNavHistory: async (fundId: number): Promise<Types.NavLogOut[]> => {
+    if (USE_MOCK_DATA) {
+      await delay(500);
+      // Flat mock history — real backend data replaces this once connected.
+      return [];
+    }
+    const { data } = await apiClient.get<Types.NavLogOut[]>(API_ENDPOINTS.NAV_HISTORY(fundId));
+    return data;
+  },
+
   ackAlert: async (id: number): Promise<any> => {
     if (USE_MOCK_DATA) {
       await delay(300);

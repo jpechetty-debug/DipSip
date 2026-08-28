@@ -8,7 +8,7 @@ from ..alerts import maybe_create_alert
 from ..auth import require_api_key
 from ..cycles import update_fund_cycle, update_regime_cycle
 from ..database import get_db
-from ..portfolio import all_fund_snapshots, regime_thresholds_dict, thresholds_dict
+from ..portfolio import all_fund_snapshots, effective_thresholds_for_fund, regime_thresholds_dict, thresholds_dict
 from ..regime import blended_drawdown, regime_for
 from ..scoring import compute_drawdown, tier_for
 
@@ -33,7 +33,7 @@ def log_nav(payload: schemas.NavLogCreate, db: Session = Depends(get_db)):
         fund.reference_high_is_placeholder = False
     db.commit()
 
-    thresholds = thresholds_dict(db)
+    thresholds = effective_thresholds_for_fund(fund, thresholds_dict(db))
     drawdown = compute_drawdown(payload.nav, fund.reference_high)
     tier = tier_for(drawdown, thresholds)
     maybe_create_alert(db, fund, tier, drawdown)

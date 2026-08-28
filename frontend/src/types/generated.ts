@@ -56,6 +56,14 @@ export interface FundOut {
   effective_thresholds?: Record<string, number>;
 }
 
+export interface NavLogOut {
+  id: number;
+  fund_id: number;
+  date: string;
+  nav: number;
+  source: string;
+}
+
 export interface NavLogCreate {
   fund_id: number;
   date?: string;
